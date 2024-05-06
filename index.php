@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Content Detector</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.1.1/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@1.4.0/dist/full.css" rel="stylesheet">
+    <style>
+      
+        .text-area-extension {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 1rem;
+        }
+
+        .text-area-extension span {
+            font-size: 0.875rem;
+            color: #4a5568;
+        }
+
+        .text-area-extension button {
+            cursor: pointer;
+        }
+
+        @media screen and (max-width: 640px) {
+            .text-area-extension {
+                flex-direction: column;
+            }
+
+            .text-area-extension button {
+                margin-top: 0.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body class="font-sans antialiased bg-gray-100 dark:bg-gray-800 h-screen">
+    <div class="container mx-auto py-8 px-8">
+        <h1 class="text-3xl font-bold text-center mb-8">AI Content Detector</h1>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="md:col-span-2 relative">
+                <textarea id="inputText"
+                    class="w-full h-64 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                    placeholder="Enter your text here..."></textarea>
+                <div class="text-area-extension">
+                    <div>
+                        <span id="wordCount">Word Count: 0</span>
+                        <span id="charCount" class="ml-4">Character Count: 0</span>
+                    </div>
+                    <div class="flex items-center">
+                        <p id="clearButton"
+                            class="text-red-500 dark:text-red-400 cursor-pointer">Clear</p>
+                        <p id="copyButton"
+                            class="text-gray-800 dark:text-gray-200 ml-4 cursor-pointer">Copy</p>
+                    </div>
+                </div>
+                <div class="mt-4 flex justify-end">
+                    <button id="scanButton"
+                        class="btn hover:text-white w-full md:w-auto">Scan</button>
+                </div>
+            </div>
+            <div class="md:col-span-1">
+                <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-4 text-center">
+                    <h2 class="text-xl font-bold mb-4">Content Analysis</h2>
+                    <div id="loading" class="loading hidden flex justify-center items-center">
+                        <img src="https://i.pinimg.com/originals/45/12/4d/45124d126d0f0b6d8f5c4d635d466246.gif"
+                            alt="Loading..." class="text-center h-24 w-auto">
+                    </div>
+                    <div id="progressBar"
+                        class="w-full h-4 bg-gray-200 dark:bg-gray-600 rounded-lg overflow-hidden relative mb-4">
+                        <div id="progress"
+                            class="h-full text-center text-xs text-white transition-all duration-300 progress-bar"></div>
+                        <div class="absolute w-full text-xs text-gray-700 dark:text-gray-300 text-center progress-label"
+                            id="progressLabel"></div>
+                    </div>
+                    <div class="items-center text-center">
+                        <p id="aiPercentage"
+                            class="ml-auto text-sm font-semibold text-gray-500 dark:text-gray-400 mb-4">Probability
+                            Score: </p>
+                        <p id="aiContentLabel" class="text-lg"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <br>
+
+        <div class="mt-4 text-center bg-gray-100" id="aiSentences" style="display:none">
+            <h2 class="text-xl font-bold mb-2">Suspected AI-generated Sentences</h2>
+            <div id="sentenceList" class="mx-auto max-w-3xl text-left"></div>
+        </div>
+    </div>
+
+    <script>
+        const inputText = document.getElementById("inputText");
+    const wordCount = document.getElementById("wordCount");
+    const charCount = document.getElementById("charCount");
+
+    inputText.addEventListener("input", function () {
+        const text = this.value.trim();
+        const words = text.split(/\s+/).filter(Boolean);
+        const characters = text.split('').filter(Boolean);
+        wordCount.innerText = `Word Count: ${words.length}`;
+        charCount.innerText = `Character Count: ${characters.length}`;
+    });
+        document.getElementById("scanButton").addEventListener("click", function () {
+            const inputText = document.getElementById("inputText").value;
+            const data = 'content=' + encodeURIComponent(inputText);
+            const loading = document.getElementById("loading");
+            loading.style.display = "flex";
+
+            fetch('https://ai-plagiarism-checker.p.rapidapi.com/detector/v1/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-RapidAPI-Key': '63a06896cemsh57e79541834e0c3p114709jsnc6f7d1d20c4f',
+                    'X-RapidAPI-Host': 'ai-plagiarism-checker.p.rapidapi.com'
+                },
+                body: data,
+            })
+                .then(response => response.json())
+                .then(response => {
+                    const aiPercentage = parseFloat(response.ai_percentage).toFixed(2);
+                    const contentLabel = response.content_label;
+                    const sentences = response.sentence_scores;
+                    const progressBar = document.getElementById("progress");
+                    const progressBarLabel = document.getElementById("progressLabel");
+                    const aiContentLabel = document.getElementById("aiContentLabel");
+                    const aiPercentageLabel = document.getElementById("aiPercentage");
+                    const sentenceList = document.getElementById("sentenceList");
+                    const wordCount = document.getElementById("wordCount");
+                    const charCount = document.getElementById("charCount");
+                    const aiSentences = document.getElementById("aiSentences");
+
+                    // Display AI percentage
+                    aiPercentageLabel.innerText = "Probability of: " + aiPercentage + "%";
+
+                    // Determine content label
+                    if (aiPercentage > 76) {
+                        aiContentLabel.innerText = "Likely AI 🤖";
+                        progressBar.style.backgroundColor = "#ff0000";
+                        progressBarLabel.style.color = "#fff";
+                    } else if (aiPercentage >= 60 && aiPercentage <= 75) {
+                        aiContentLabel.innerText = "May Have AI 🤔";
+                        progressBar.style.backgroundColor = "#ffcc00";
+                        progressBarLabel.style.color = "#fff";
+                    } else if (aiPercentage >= 50 && aiPercentage < 60) {
+                        aiContentLabel.innerText = "Likely Human with few AI-like sentences 😐";
+                        progressBar.style.backgroundColor = "#ffff66";
+                        progressBarLabel.style.color = "#333";
+                    } else {
+                        aiContentLabel.innerText = "Likely Human 😊";
+                        progressBar.style.backgroundColor = "#90ee90";
+                        progressBarLabel.style.color = "#333";
+                    }
+
+                    // Update progress bar
+                    progressBar.style.width = aiPercentage + "%";
+                    progressBar.setAttribute("data-progress", aiPercentage);
+                    progressBarLabel.innerText = aiPercentage + "%";
+
+                    // Display AI-generated sentences with scores
+                    sentenceList.innerHTML = "";
+                    sentences.forEach(([sentence, score]) => {
+                        if (score <= 50) {
+                            const card = document.createElement("div");
+                            card.className = "bg-white dark:bg-gray-700 rounded-lg shadow-md p-4 mb-4";
+                            card.innerHTML = `
+                                <p class="text-lg"><span class="highlight">${sentence}</span> - ${score}</p>
+                            `;
+                            sentenceList.appendChild(card);
+                        }
+                    });
+
+                    // Calculate word count and character count
+                    const words = inputText.trim().split(/\s+/).filter(Boolean);
+                    const characters = inputText.trim().split('').filter(Boolean);
+                    wordCount.innerText = `Word Count: ${words.length}`;
+                    charCount.innerText = `Character Count: ${characters.length}`;
+
+                    loading.style.display = "none";
+                    aiSentences.style.display = "block";
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    loading.style.display = "none";
+                });
+        });
+
+        document.getElementById("clearButton").addEventListener("click", function () {
+            document.getElementById("inputText").value = "";
+            document.getElementById("aiContentLabel").innerText = "";
+            document.getElementById("progress").style.width = "0%";
+            document.getElementById("progress").setAttribute("data-progress", "0");
+            document.getElementById("progressLabel").innerText = "0%";
+            document.getElementById("aiPercentage").innerText = "Probability Score: ";
+            document.getElementById("sentenceList").innerHTML = "";
+            document.getElementById("wordCount").innerText = "Word Count: 0";
+            document.getElementById("charCount").innerText = "Character Count: 0";
+            document.getElementById("aiSentences").style.display = "none";
+        });
+
+        document.getElementById("copyButton").addEventListener("click", function () {
+            const inputText = document.getElementById("inputText");
+            inputText.select();
+            inputText.setSelectionRange(0, 99999); /* For mobile devices */
+            document.execCommand("copy");
+            alert("Copied the text: " + inputText.value);
+        });
+    </script>
+</body>
+
+</html>
