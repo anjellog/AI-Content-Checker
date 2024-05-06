@@ -39,11 +39,11 @@
 
 <body class="font-sans antialiased bg-gray-100 dark:bg-gray-800 h-screen">
     <div class="container mx-auto py-8 px-8">
-        <h1 class="text-3xl font-bold text-center mb-8">AI Content Detector</h1>
+        <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">AI Content Detector</h1>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="md:col-span-2 relative">
                 <textarea id="inputText"
-                    class="w-full h-64 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                    class="text-gray-800 w-full h-64 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                     placeholder="Enter your text here..."></textarea>
                 <div class="text-area-extension">
                     <div>
@@ -64,7 +64,7 @@
             </div>
             <div class="md:col-span-1">
                 <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-4 text-center">
-                    <h2 class="text-xl font-bold mb-4">Content Analysis</h2>
+                    <h2 class="text-xl font-bold mb-4 text-gray-800">Content Analysis</h2>
                     <div id="loading" class="loading hidden flex justify-center items-center">
                         <img src="https://i.pinimg.com/originals/45/12/4d/45124d126d0f0b6d8f5c4d635d466246.gif"
                             alt="Loading..." class="text-center h-24 w-auto">
@@ -80,7 +80,7 @@
                         <p id="aiPercentage"
                             class="ml-auto text-sm font-semibold text-gray-500 dark:text-gray-400 mb-4">Probability
                             Score: </p>
-                        <p id="aiContentLabel" class="text-lg"></p>
+                        <p id="aiContentLabel text-gray-800" class="text-lg"></p>
                     </div>
                 </div>
             </div>
@@ -89,8 +89,8 @@
         <br>
 
         <div class="mt-4 text-center bg-gray-100" id="aiSentences" style="display:none">
-            <h2 class="text-xl font-bold mb-2">Suspected AI-generated Sentences</h2>
-            <div id="sentenceList" class="mx-auto max-w-3xl text-left"></div>
+            <h2 class="text-xl font-bold mb-2 text-gray-800">Suspected AI-generated Sentences</h2>
+            <div id="sentenceList" class="mx-auto max-w-3xl text-left text-gray-800"></div>
         </div>
     </div>
 
